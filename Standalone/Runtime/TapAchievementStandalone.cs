@@ -42,28 +42,8 @@ namespace TapSDK.Achievement.Standalone
 
         public async void Increment(string achievementId, int step)
         {
-            if (!CheckInitState())
+            if (!CheckInitState(achievementId))
             {
-                return;
-            }
-            // check init
-            if (!TapAchievementUtil.CheckInit())
-            {
-                Debug.LogError("TapAchievement Increment achievementId: " + achievementId + " failed, not init");
-                NotifyCallbackFailure(
-                                    achievementId: achievementId,
-                                    errorCode: TapTapAchievementConstants.NOT_INITIALIZED,
-                                    "Currently not initialized, please initialize first."
-                                );
-                return;
-            }
-            if (currentRegionType == TapTapRegionType.Overseas)
-            {
-                NotifyCallbackFailure(
-                                    achievementId: achievementId,
-                                    errorCode: TapTapAchievementConstants.REGION_NOT_SUPPORTED,
-                                    "Current RegionType not supported, only support TapTapRegionType.CN"
-                                );
                 return;
             }
             // check login
@@ -83,30 +63,10 @@ namespace TapSDK.Achievement.Standalone
 
         public async void Unlock(string achievementId)
         {
-            if (!CheckInitState())
+            if (!CheckInitState(achievementId))
             {
                 return;
-            }
-            // check init
-            if (!TapAchievementUtil.CheckInit())
-            {
-                Debug.LogError("TapAchievement Increment achievementId: " + achievementId + " failed, not init");
-                NotifyCallbackFailure(
-                                    achievementId: achievementId,
-                                    errorCode: TapTapAchievementConstants.NOT_INITIALIZED,
-                                    "Currently not initialized, please initialize first."
-                                );
-                return;
-            }
-            if (currentRegionType == TapTapRegionType.Overseas)
-            {
-                NotifyCallbackFailure(
-                                    achievementId: achievementId,
-                                    errorCode: TapTapAchievementConstants.REGION_NOT_SUPPORTED,
-                                    "Current RegionType not supported, only support TapTapRegionType.CN"
-                                );
-                return;
-            }
+            }            
             // check login
             if (!await TapAchievementUtil.CheckAccount())
             {
@@ -126,28 +86,8 @@ namespace TapSDK.Achievement.Standalone
 
         public async void ShowAchievements()
         {
-            if (!CheckInitState())
+            if (!CheckInitState(""))
             {
-                return;
-            }
-            // check init
-            if (!TapAchievementUtil.CheckInit())
-            {
-                Debug.LogError("TapAchievement ShowAchievements failed, not init");
-                NotifyCallbackFailure(
-                                    achievementId: "",
-                                    errorCode: TapTapAchievementConstants.NOT_INITIALIZED,
-                                    "Currently not initialized, please initialize first."
-                                );
-                return;
-            }
-            if (currentRegionType == TapTapRegionType.Overseas)
-            {
-                NotifyCallbackFailure(
-                                    achievementId: "",
-                                    errorCode: TapTapAchievementConstants.REGION_NOT_SUPPORTED,
-                                    "Current RegionType not supported, only support TapTapRegionType.CN"
-                                );
                 return;
             }
             // check login
@@ -172,19 +112,11 @@ namespace TapSDK.Achievement.Standalone
 
         public void SetToastEnable(bool enable)
         {
-            if (!CheckInitState())
-            {
-                return;
-            }
             toastEnable = enable;
         }
 
         public void RegisterCallBack(ITapAchievementCallback callback)
         {
-            if (!CheckInitState())
-            {
-                return;
-            }
             if (!callbacks.Contains(callback))
             {
                 callbacks.Add(callback);
@@ -193,10 +125,6 @@ namespace TapSDK.Achievement.Standalone
 
         public void UnRegisterCallBack(ITapAchievementCallback callback)
         {
-            if (!CheckInitState())
-            {
-                return;
-            }
             callbacks.Remove(callback);
         }
 
@@ -413,14 +341,24 @@ namespace TapSDK.Achievement.Standalone
         /// 校验初始化参数及区域
         /// </summary>
         /// <returns>是否校验通过</returns>
-        private bool CheckInitState()
+        private bool CheckInitState(string achievementId)
         {
             if (!TapCoreStandalone.CheckInitState())
             {
+                NotifyCallbackFailure(
+                    achievementId: achievementId,
+                    errorCode: TapTapAchievementConstants.NOT_INITIALIZED,
+                    "Currently not initialized, please initialize first."
+                );
                 return false;
             }
             if (currentRegionType == TapTapRegionType.Overseas)
             {
+                 NotifyCallbackFailure(
+                    achievementId: achievementId,
+                    errorCode: TapTapAchievementConstants.REGION_NOT_SUPPORTED,
+                    "Current RegionType not supported, only support TapTapRegionType.CN"
+                );
                 TapVerifyInitStateUtils.ShowVerifyErrorMsg("海外不支持使用成就系统服务", "海外不支持使用成就系统服务");
                 return false;
             }
